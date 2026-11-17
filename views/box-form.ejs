@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box - <%= box ? 'Edit' : 'New' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">📦 Box</div>
+    <div>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2><%= box ? 'Box Edit karo' : 'Naya Box banao' %></h2>
+      <form method="POST" action="<%= box ? '/box/' + box.id + '/edit' : '/box/new' %>">
+        <label>Title</label>
+        <input type="text" name="title" value="<%= box ? box.title : '' %>" required>
+        <label>Code / Notes</label>
+        <textarea name="content" required><%= box ? box.content : '' %></textarea>
+        <button type="submit"><%= box ? 'Save' : 'Create' %></button>
+        <a href="/dashboard" class="btn" style="background:#2a2e37;">Cancel</a>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

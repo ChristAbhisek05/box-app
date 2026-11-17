@@ -1,0 +1,16 @@
+{
+  "name": "box-app",
+  "version": "1.0.0",
+  "description": "Box - store your code snippets with login (admin + users)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "lowdb": "^1.0.0"
+  }
+}

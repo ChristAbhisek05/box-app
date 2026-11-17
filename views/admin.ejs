@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box - Admin Panel</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">📦 Box — Admin</div>
+    <div>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>Sab Users (<%= users.length %>)</h2>
+      <table>
+        <tr><th>Username</th><th>Role</th><th>Total Boxes</th></tr>
+        <% users.forEach(u => { %>
+          <tr>
+            <td><%= u.username %></td>
+            <td><%= u.role %></td>
+            <td><%= boxes.filter(b => b.userId === u.id).length %></td>
+          </tr>
+        <% }) %>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Sab Boxes (<%= boxes.length %>)</h2>
+      <% boxes.forEach(box => {
+        const owner = users.find(u => u.id === box.userId);
+      %>
+        <div class="box-item">
+          <strong><%= box.title %></strong>
+          <p class="muted">by <%= owner ? owner.username : 'unknown' %> — <%= new Date(box.createdAt).toLocaleString() %></p>
+          <pre><%= box.content %></pre>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box - Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">📦 Box</div>
+    <div>
+      <span class="muted"><%= user.username %> (<%= user.role %>)</span>
+      <% if (user.role === 'admin') { %><a href="/admin">Admin Panel</a><% } %>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h2>Aapke Boxes</h2>
+    <a href="/box/new" class="btn">+ Naya Box banao</a>
+
+    <% if (boxes.length === 0) { %>
+      <p class="muted" style="margin-top:20px;">Abhi koi box nahi hai. Upar wale button se naya banao.</p>
+    <% } %>
+
+    <% boxes.forEach(box => { %>
+      <div class="box-item">
+        <strong><%= box.title %></strong>
+        <p class="muted"><%= new Date(box.createdAt).toLocaleString() %></p>
+        <pre><%= box.content %></pre>
+        <a href="/box/<%= box.id %>/edit" class="btn">Edit</a>
+        <form method="POST" action="/box/<%= box.id %>/delete" style="display:inline;">
+          <button type="submit" class="danger" onclick="return confirm('Delete karein?')">Delete</button>
+        </form>
+      </div>
+    <% }) %>
+  </div>
+</body>
+</html>
