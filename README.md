@@ -5,8 +5,9 @@ Apna khud ka code/notes store karne wala app — login system ke saath (Admin + 
 ## Features
 - Register / Login (password safely hashed hota hai)
 - Har user apna "Box" bana sakta hai jisme code/notes save hote hain
-- Admin sabka data dekh sakta hai (Admin Panel)
-- Data `db.json` file me store hota hai — koi alag database install karne ki zaroorat nahi
+- **Drive feature**: har user apne photos/documents upload kar sakta hai
+- Sirf **ek hi Admin** account ban sakta hai — wahi sabka data (boxes + files) dekh sakta hai Admin Panel me
+- Data `db.json` file me store hota hai, files `uploads/` folder me — koi alag database install karne ki zaroorat nahi
 
 ## Admin kaise banaye
 `server.js` me ye line hai:

@@ -17,14 +17,14 @@
 
   <div class="wrap">
     <div class="card">
-      <h2><%= box ? 'Box Edit karo' : 'Naya Box banao' %></h2>
+      <h2><%= box ? 'Edit Box' : 'New Box' %></h2>
       <form method="POST" action="<%= box ? '/box/' + box.id + '/edit' : '/box/new' %>">
         <label>Title</label>
-        <input type="text" name="title" value="<%= box ? box.title : '' %>" required>
+        <input type="text" name="title" value="<%= box ? box.title : '' %>" required autofocus>
         <label>Code / Notes</label>
         <textarea name="content" required><%= box ? box.content : '' %></textarea>
-        <button type="submit"><%= box ? 'Save' : 'Create' %></button>
-        <a href="/dashboard" class="btn" style="background:#2a2e37;">Cancel</a>
+        <button type="submit"><%= box ? 'Save Changes' : 'Create Box' %></button>
+        <a href="/dashboard" class="btn secondary">Cancel</a>
       </form>
     </div>
   </div>

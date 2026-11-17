@@ -7,20 +7,20 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div class="wrap" style="max-width:420px; margin-top:60px;">
+  <div class="wrap" style="max-width:420px; margin-top:70px;">
     <div class="card">
       <h1>📦 Box</h1>
-      <p class="muted">Login karke apna code/notes dekho.</p>
+      <p class="muted">Log in to access your code notes and files.</p>
       <form method="POST" action="/login">
         <label>Username</label>
-        <input type="text" name="username" required>
+        <input type="text" name="username" required autofocus>
         <label>Password</label>
         <input type="password" name="password" required>
-        <button type="submit">Login</button>
+        <button type="submit">Log In</button>
       </form>
       <% if (error) { %><p class="error"><%= error %></p><% } %>
-      <p class="muted" style="margin-top:16px;">
-        Naya account chahiye? <a href="/register" style="color:#4f8cff;">Register karo</a>
+      <p class="muted" style="margin-top:18px;">
+        Don't have an account? <a href="/register" style="color:#5b8cff;">Register here</a>
       </p>
     </div>
   </div>

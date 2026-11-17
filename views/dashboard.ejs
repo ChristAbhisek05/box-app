@@ -10,31 +10,102 @@
   <div class="navbar">
     <div class="brand">📦 Box</div>
     <div>
-      <span class="muted"><%= user.username %> (<%= user.role %>)</span>
+      <span class="who"><%= user.username %></span>
+      <span class="pill"><%= user.role %></span>
       <% if (user.role === 'admin') { %><a href="/admin">Admin Panel</a><% } %>
       <a href="/logout">Logout</a>
     </div>
   </div>
 
   <div class="wrap">
-    <h2>Aapke Boxes</h2>
-    <a href="/box/new" class="btn">+ Naya Box banao</a>
+    <div class="tabs">
+      <a href="#code" id="tab-code" class="tab-link active" onclick="showTab('code')">💻 Code Boxes</a>
+      <a href="#drive" id="tab-drive" class="tab-link" onclick="showTab('drive')">🗂 Drive</a>
+    </div>
 
-    <% if (boxes.length === 0) { %>
-      <p class="muted" style="margin-top:20px;">Abhi koi box nahi hai. Upar wale button se naya banao.</p>
-    <% } %>
+    <!-- CODE BOXES SECTION -->
+    <div id="section-code">
+      <div class="section-title">
+        <h2>Your Code Boxes</h2>
+        <a href="/box/new" class="btn">+ New Box</a>
+      </div>
 
-    <% boxes.forEach(box => { %>
-      <div class="box-item">
-        <strong><%= box.title %></strong>
-        <p class="muted"><%= new Date(box.createdAt).toLocaleString() %></p>
-        <pre><%= box.content %></pre>
-        <a href="/box/<%= box.id %>/edit" class="btn">Edit</a>
-        <form method="POST" action="/box/<%= box.id %>/delete" style="display:inline;">
-          <button type="submit" class="danger" onclick="return confirm('Delete karein?')">Delete</button>
+      <% if (boxes.length === 0) { %>
+        <div class="card empty-state">No code boxes yet. Create one to save a snippet or note.</div>
+      <% } else { %>
+        <div class="item-list">
+          <% boxes.forEach(box => { %>
+            <div class="box-item">
+              <div class="row">
+                <strong><%= box.title %></strong>
+                <span class="muted"><%= new Date(box.createdAt).toLocaleString() %></span>
+              </div>
+              <pre><%= box.content %></pre>
+              <div class="row">
+                <div>
+                  <a href="/box/<%= box.id %>/edit" class="btn secondary small">Edit</a>
+                  <form method="POST" action="/box/<%= box.id %>/delete" class="inline">
+                    <button type="submit" class="danger small" onclick="return confirm('Delete this box?')">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- DRIVE SECTION -->
+    <div id="section-drive" style="display:none;">
+      <div class="section-title">
+        <h2>Your Drive</h2>
+      </div>
+
+      <div class="card upload-box">
+        <form method="POST" action="/drive/upload" enctype="multipart/form-data">
+          <p class="muted" style="margin-top:0;">Upload a photo or document</p>
+          <input type="file" name="file" required>
+          <button type="submit">Upload</button>
         </form>
       </div>
-    <% }) %>
+
+      <% if (files.length === 0) { %>
+        <div class="card empty-state">No files uploaded yet.</div>
+      <% } else { %>
+        <div class="item-list" style="margin-top:16px;">
+          <% files.forEach(file => { %>
+            <div class="file-item">
+              <div class="row">
+                <div class="row" style="gap:12px;">
+                  <div class="file-icon"><%= file.mimetype && file.mimetype.startsWith('image/') ? '🖼️' : '📄' %></div>
+                  <div>
+                    <div><strong><%= file.originalName %></strong></div>
+                    <div class="muted"><%= humanSize(file.size) %> · <%= new Date(file.uploadedAt).toLocaleString() %></div>
+                  </div>
+                </div>
+                <div>
+                  <a href="/drive/file/<%= file.id %>" target="_blank" class="btn secondary small">View</a>
+                  <form method="POST" action="/drive/file/<%= file.id %>/delete" class="inline">
+                    <button type="submit" class="danger small" onclick="return confirm('Delete this file?')">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
   </div>
+
+  <script>
+    function showTab(name) {
+      document.getElementById('section-code').style.display = name === 'code' ? 'block' : 'none';
+      document.getElementById('section-drive').style.display = name === 'drive' ? 'block' : 'none';
+      document.getElementById('tab-code').classList.toggle('active', name === 'code');
+      document.getElementById('tab-drive').classList.toggle('active', name === 'drive');
+    }
+    // Keep the Drive tab active after a redirect if the hash says so
+    if (window.location.hash === '#drive') showTab('drive');
+  </script>
 </body>
 </html>

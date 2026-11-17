@@ -7,20 +7,20 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div class="wrap" style="max-width:420px; margin-top:60px;">
+  <div class="wrap" style="max-width:420px; margin-top:70px;">
     <div class="card">
       <h1>📦 Box</h1>
-      <p class="muted">Naya account banao.</p>
+      <p class="muted">Create a new account to get started.</p>
       <form method="POST" action="/register">
         <label>Username</label>
-        <input type="text" name="username" required>
+        <input type="text" name="username" required autofocus>
         <label>Password</label>
         <input type="password" name="password" required>
         <button type="submit">Register</button>
       </form>
       <% if (error) { %><p class="error"><%= error %></p><% } %>
-      <p class="muted" style="margin-top:16px;">
-        Pehle se account hai? <a href="/login" style="color:#4f8cff;">Login karo</a>
+      <p class="muted" style="margin-top:18px;">
+        Already have an account? <a href="/login" style="color:#5b8cff;">Log in</a>
       </p>
     </div>
   </div>

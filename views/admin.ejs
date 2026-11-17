@@ -17,30 +17,64 @@
 
   <div class="wrap">
     <div class="card">
-      <h2>Sab Users (<%= users.length %>)</h2>
+      <h2>All Users (<%= users.length %>)</h2>
       <table>
-        <tr><th>Username</th><th>Role</th><th>Total Boxes</th></tr>
+        <tr><th>Username</th><th>Role</th><th>Boxes</th><th>Files</th></tr>
         <% users.forEach(u => { %>
           <tr>
             <td><%= u.username %></td>
-            <td><%= u.role %></td>
+            <td><%- u.role === 'admin' ? '<span class="admin-badge">admin</span>' : '<span class="user-badge">user</span>' %></td>
             <td><%= boxes.filter(b => b.userId === u.id).length %></td>
+            <td><%= files.filter(f => f.userId === u.id).length %></td>
           </tr>
         <% }) %>
       </table>
     </div>
 
     <div class="card">
-      <h2>Sab Boxes (<%= boxes.length %>)</h2>
-      <% boxes.forEach(box => {
-        const owner = users.find(u => u.id === box.userId);
-      %>
-        <div class="box-item">
-          <strong><%= box.title %></strong>
-          <p class="muted">by <%= owner ? owner.username : 'unknown' %> — <%= new Date(box.createdAt).toLocaleString() %></p>
-          <pre><%= box.content %></pre>
-        </div>
-      <% }) %>
+      <h2>All Code Boxes (<%= boxes.length %>)</h2>
+      <% if (boxes.length === 0) { %>
+        <p class="muted">No boxes yet.</p>
+      <% } %>
+      <div class="item-list">
+        <% boxes.forEach(box => {
+          const owner = users.find(u => u.id === box.userId);
+        %>
+          <div class="box-item">
+            <div class="row">
+              <strong><%= box.title %></strong>
+              <span class="muted">by <%= owner ? owner.username : 'unknown' %></span>
+            </div>
+            <pre><%= box.content %></pre>
+            <span class="muted"><%= new Date(box.createdAt).toLocaleString() %></span>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>All Files (<%= files.length %>)</h2>
+      <% if (files.length === 0) { %>
+        <p class="muted">No files uploaded yet.</p>
+      <% } %>
+      <div class="item-list">
+        <% files.forEach(file => {
+          const owner = users.find(u => u.id === file.userId);
+        %>
+          <div class="file-item">
+            <div class="row">
+              <div class="row" style="gap:12px;">
+                <div class="file-icon"><%= file.mimetype && file.mimetype.startsWith('image/') ? '🖼️' : '📄' %></div>
+                <div>
+                  <div><strong><%= file.originalName %></strong></div>
+                  <div class="muted">by <%= owner ? owner.username : 'unknown' %> · <%= humanSize(file.size) %></div>
+                </div>
+              </div>
+              <a href="/drive/file/<%= file.id %>" target="_blank" class="btn secondary small">View</a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
     </div>
   </div>
 </body>
