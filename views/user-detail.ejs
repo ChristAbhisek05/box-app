@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box - <%= targetUser.username %>'s Data</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">📦 Box — Admin</div>
+    <div>
+      <a href="/admin">Back to Admin Panel</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="row" style="display:flex; justify-content:space-between; align-items:center;">
+        <h1 style="margin:0;"><%= targetUser.username %></h1>
+        <span class="pill"><%= targetUser.role %></span>
+      </div>
+      <p class="muted">All code boxes and files belonging to this user.</p>
+    </div>
+
+    <h2>Code Boxes (<%= boxes.length %>)</h2>
+    <% if (boxes.length === 0) { %>
+      <div class="card empty-state">This user has no code boxes.</div>
+    <% } else { %>
+      <div class="item-list">
+        <% boxes.forEach(box => { %>
+          <div class="box-item">
+            <div class="row">
+              <strong><%= box.title %></strong>
+              <span class="muted"><%= new Date(box.createdAt).toLocaleString() %></span>
+            </div>
+            <pre><%= box.content %></pre>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <h2 style="margin-top:28px;">Files (<%= files.length %>)</h2>
+    <% if (files.length === 0) { %>
+      <div class="card empty-state">This user has no uploaded files.</div>
+    <% } else { %>
+      <div class="item-list">
+        <% files.forEach(file => { %>
+          <div class="file-item">
+            <div class="row">
+              <div class="row" style="gap:12px;">
+                <div class="file-icon"><%= file.mimetype && file.mimetype.startsWith('image/') ? '🖼️' : '📄' %></div>
+                <div>
+                  <div><strong><%= file.originalName %></strong></div>
+                  <div class="muted"><%= humanSize(file.size) %> · <%= new Date(file.uploadedAt).toLocaleString() %></div>
+                </div>
+              </div>
+              <a href="/drive/file/<%= file.id %>" target="_blank" class="btn secondary small">View</a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

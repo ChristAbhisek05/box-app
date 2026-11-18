@@ -19,13 +19,20 @@
     <div class="card">
       <h2>All Users (<%= users.length %>)</h2>
       <table>
-        <tr><th>Username</th><th>Role</th><th>Boxes</th><th>Files</th></tr>
+        <tr><th>Username</th><th>Role</th><th>Boxes</th><th>Files</th><th></th></tr>
         <% users.forEach(u => { %>
           <tr>
-            <td><%= u.username %></td>
+            <td><a href="/admin/user/<%= u.id %>" style="color:#5b8cff; text-decoration:none; font-weight:600;"><%= u.username %></a></td>
             <td><%- u.role === 'admin' ? '<span class="admin-badge">admin</span>' : '<span class="user-badge">user</span>' %></td>
             <td><%= boxes.filter(b => b.userId === u.id).length %></td>
             <td><%= files.filter(f => f.userId === u.id).length %></td>
+            <td>
+              <% if (u.role !== 'admin') { %>
+                <form method="POST" action="/admin/user/<%= u.id %>/delete" class="inline">
+                  <button type="submit" class="danger small" onclick="return confirm('Remove <%= u.username %> and ALL their data? This cannot be undone.')">Remove</button>
+                </form>
+              <% } %>
+            </td>
           </tr>
         <% }) %>
       </table>
