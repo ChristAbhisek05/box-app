@@ -14,9 +14,11 @@
       <form method="POST" action="/register">
         <label>Username</label>
         <input type="text" name="username" required autofocus>
+        <label>Email</label>
+        <input type="text" name="email" placeholder="you@example.com" required>
         <label>Password</label>
         <input type="password" name="password" required>
-        <button type="submit">Register</button>
+        <button type="submit">Send Verification Code</button>
       </form>
       <% if (error) { %><p class="error"><%= error %></p><% } %>
       <p class="muted" style="margin-top:18px;">

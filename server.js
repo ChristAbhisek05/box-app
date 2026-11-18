@@ -6,6 +6,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 const db = require('./db');
@@ -15,6 +16,40 @@ const PORT = process.env.PORT || 3000;
 
 // The one and only username that becomes admin. Change via env var if needed.
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+
+// ---------- Email (OTP) setup ----------
+// Set EMAIL_USER and EMAIL_PASS (a Gmail App Password) as environment variables
+// to actually send emails. Without them, the OTP is printed to the server
+// console instead, which is handy for local testing.
+const EMAIL_USER = process.env.EMAIL_USER || null;
+const EMAIL_PASS = process.env.EMAIL_PASS || null;
+
+let transporter = null;
+if (EMAIL_USER && EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: EMAIL_USER, pass: EMAIL_PASS }
+  });
+}
+
+function generateOtp() {
+  return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
+}
+
+async function sendOtpEmail(toEmail, otp) {
+  if (!transporter) {
+    // Dev fallback: no email configured, just log it.
+    console.log(`[DEV MODE - no email configured] OTP for ${toEmail}: ${otp}`);
+    return;
+  }
+  await transporter.sendMail({
+    from: `"Box" <${EMAIL_USER}>`,
+    to: toEmail,
+    subject: 'Your Box verification code',
+    text: `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`,
+    html: `<p>Your verification code is:</p><h2 style="letter-spacing:4px;">${otp}</h2><p>This code expires in 10 minutes.</p>`
+  });
+}
 
 // ---------- Uploads folder setup ----------
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
@@ -71,20 +106,20 @@ app.get('/', (req, res) => {
   res.render('home');
 });
 
-// ----- Register -----
+// ----- Register: step 1 - collect details, send OTP -----
 app.get('/register', (req, res) => {
   res.render('register', { error: null });
 });
 
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
 
-  if (!username || !password) {
-    return res.render('register', { error: 'Username and password are both required.' });
+  if (!username || !email || !password) {
+    return res.render('register', { error: 'Username, email and password are all required.' });
   }
 
-  const existing = db.get('users').find({ username }).value();
-  if (existing) {
+  const existingUser = db.get('users').find({ username }).value();
+  if (existingUser) {
     return res.render('register', { error: 'This username is already taken.' });
   }
 
@@ -96,17 +131,88 @@ app.post('/register', (req, res) => {
     }
   }
 
+  // Remove any older pending request for the same username/email
+  db.get('pending').remove({ username }).write();
+
+  const otp = generateOtp();
   const hashed = bcrypt.hashSync(password, 10);
+  const pendingId = Date.now().toString();
+
+  db.get('pending').push({
+    id: pendingId,
+    username,
+    email,
+    password: hashed,
+    role: wantsAdmin ? 'admin' : 'user',
+    otp,
+    expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
+  }).write();
+
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (err) {
+    console.error('Failed to send OTP email:', err.message);
+    return res.render('register', { error: 'Could not send the verification email. Please check the email address and try again.' });
+  }
+
+  req.session.pendingId = pendingId;
+  res.redirect('/verify-otp');
+});
+
+// ----- Register: step 2 - verify the OTP -----
+app.get('/verify-otp', (req, res) => {
+  if (!req.session.pendingId) return res.redirect('/register');
+  const pending = db.get('pending').find({ id: req.session.pendingId }).value();
+  if (!pending) return res.redirect('/register');
+  res.render('verify-otp', { error: null, email: pending.email });
+});
+
+app.post('/verify-otp', (req, res) => {
+  const pending = db.get('pending').find({ id: req.session.pendingId }).value();
+  if (!pending) return res.redirect('/register');
+
+  if (Date.now() > pending.expiresAt) {
+    db.get('pending').remove({ id: pending.id }).write();
+    req.session.pendingId = null;
+    return res.render('register', { error: 'Your code expired. Please register again.' });
+  }
+
+  if (req.body.otp !== pending.otp) {
+    return res.render('verify-otp', { error: 'Incorrect code. Please try again.', email: pending.email });
+  }
+
   const newUser = {
     id: Date.now().toString(),
-    username,
-    password: hashed,
-    role: wantsAdmin ? 'admin' : 'user'
+    username: pending.username,
+    email: pending.email,
+    password: pending.password,
+    role: pending.role
   };
-
   db.get('users').push(newUser).write();
+  db.get('pending').remove({ id: pending.id }).write();
+  req.session.pendingId = null;
 
   res.redirect('/login');
+});
+
+// ----- Register: resend OTP -----
+app.post('/verify-otp/resend', async (req, res) => {
+  const pending = db.get('pending').find({ id: req.session.pendingId }).value();
+  if (!pending) return res.redirect('/register');
+
+  const otp = generateOtp();
+  db.get('pending').find({ id: pending.id }).assign({
+    otp,
+    expiresAt: Date.now() + 10 * 60 * 1000
+  }).write();
+
+  try {
+    await sendOtpEmail(pending.email, otp);
+  } catch (err) {
+    console.error('Failed to resend OTP email:', err.message);
+  }
+
+  res.render('verify-otp', { error: 'A new code has been sent.', email: pending.email });
 });
 
 // ----- Login -----
@@ -234,6 +340,45 @@ app.get('/admin', requireLogin, requireAdmin, (req, res) => {
   const boxes = db.get('boxes').value();
   const files = db.get('files').value();
   res.render('admin', { user: req.session.user, users, boxes, files, humanSize });
+});
+
+// ----- Admin: view one specific user's full data -----
+app.get('/admin/user/:id', requireLogin, requireAdmin, (req, res) => {
+  const targetUser = db.get('users').find({ id: req.params.id }).value();
+  if (!targetUser) return res.status(404).send('User not found.');
+
+  const userBoxes = db.get('boxes').filter({ userId: targetUser.id }).value();
+  const userFiles = db.get('files').filter({ userId: targetUser.id }).value();
+
+  res.render('user-detail', {
+    user: req.session.user,
+    targetUser,
+    boxes: userBoxes,
+    files: userFiles,
+    humanSize
+  });
+});
+
+// ----- Admin: remove a user completely (their boxes + files too) -----
+app.post('/admin/user/:id/delete', requireLogin, requireAdmin, (req, res) => {
+  const targetUser = db.get('users').find({ id: req.params.id }).value();
+  if (!targetUser) return res.status(404).send('User not found.');
+
+  if (targetUser.id === req.session.user.id) {
+    return res.status(400).send('You cannot remove your own admin account.');
+  }
+
+  // Delete the user's uploaded files from disk too
+  const userFiles = db.get('files').filter({ userId: targetUser.id }).value();
+  userFiles.forEach(f => {
+    fs.unlink(path.join(UPLOAD_DIR, f.storedName), () => {});
+  });
+
+  db.get('files').remove({ userId: targetUser.id }).write();
+  db.get('boxes').remove({ userId: targetUser.id }).write();
+  db.get('users').remove({ id: targetUser.id }).write();
+
+  res.redirect('/admin');
 });
 
 app.listen(PORT, () => {

@@ -10,6 +10,6 @@ const adapter = new FileSync(path.join(__dirname, 'db.json'));
 const db = low(adapter);
 
 // Default structure
-db.defaults({ users: [], boxes: [], files: [] }).write();
+db.defaults({ users: [], boxes: [], files: [], pending: [] }).write();
 
 module.exports = db;

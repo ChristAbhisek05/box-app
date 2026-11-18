@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Box - Verify Email</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap" style="max-width:420px; margin-top:70px;">
+    <div class="card">
+      <h1>📦 Box</h1>
+      <p class="muted">We sent a 4-digit code to <strong><%= email %></strong>. Enter it below to finish creating your account.</p>
+      <form method="POST" action="/verify-otp">
+        <label>Verification Code</label>
+        <input type="text" name="otp" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" required autofocus style="letter-spacing:6px; font-size:1.3em; text-align:center;">
+        <button type="submit">Verify &amp; Create Account</button>
+      </form>
+      <% if (error) { %><p class="error"><%= error %></p><% } %>
+      <form method="POST" action="/verify-otp/resend" style="margin-top:14px;">
+        <button type="submit" class="secondary small">Resend Code</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
