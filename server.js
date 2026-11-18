@@ -66,7 +66,10 @@ function humanSize(bytes) {
 
 // ---------- Routes ----------
 
-app.get('/', (req, res) => res.redirect(req.session.user ? '/dashboard' : '/login'));
+app.get('/', (req, res) => {
+  if (req.session.user) return res.redirect('/dashboard');
+  res.render('home');
+});
 
 // ----- Register -----
 app.get('/register', (req, res) => {
